@@ -6,8 +6,8 @@ MPAS-GPU-for_wsm6 is GPU Acceleration code of MPAS WSM6, and MPAS-Model-5.3 is o
 These codes require some librarys. The required software are PGI compiler, HDF5, Parallel NETCDF, NETCDF, and PIO.
 
 you can compile atmosphere and init_atmosphere below instruction.
-make pgi CORE=atmosphere
-make clean CORE=init_atmosphere
+make pgi CORE=atmosphere \
+make clean CORE=init_atmosphere \
 make pgi CORE=init_atmosphere
 
 Unfortunately, we cannot upload initial data on github due to their size.
