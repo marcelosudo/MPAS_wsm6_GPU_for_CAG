@@ -110,7 +110,7 @@ clean:
 .F.o:
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90
-	$(FC) $(OPENACC) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
+	$(FC) -acc -Minfo=accel -ta=tesla:cc70,pinned $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
 else
-	$(FC) $(OPENACC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
+	$(FC) -acc -Minfo=accel -ta=tesla:cc70,pinned $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
 endif
