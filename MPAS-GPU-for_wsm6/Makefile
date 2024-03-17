@@ -1,6 +1,6 @@
 MODEL_FORMULATION = 
-OPENACC=-Mnofma -Kieee
-OPENACC=#-acc -Minfo=accel -ta=tesla:cc70,pinned -Mnofma -Kieee
+OPENACCOPT=-Mnofma -Kieee
+OPENACCOPT=#-acc -Minfo=accel -ta=tesla:cc70,pinned -Mnofma -Kieee
 
 
 dummy:
@@ -79,10 +79,10 @@ pgi:
 	"CC_SERIAL = pgcc" \
 	"CXX_SERIAL = pgc++" \
 	"FFLAGS_PROMOTION = -r8" \
-	"FFLAGS_OPT = -O3 -byteswapio -Mfree" \
-	"CFLAGS_OPT = -O3" \
-	"CXXFLAGS_OPT = -O3" \
-	"LDFLAGS_OPT = -O3" \
+	"FFLAGS_OPT = -O3 -byteswapio -Mfree $(OPENACCOPT)" \
+	"CFLAGS_OPT = -O3 $(OPENACCOPT)" \
+	"CXXFLAGS_OPT = -O3 $(OPENACCOPT)" \
+	"LDFLAGS_OPT = -O3 $(OPENACCOPT)" \
 	"FFLAGS_DEBUG = -O0 -g -Mbounds -Mchkptr -byteswapio -Mfree -Ktrap=divz,fp,inv,ovf -traceback" \
 	"CFLAGS_DEBUG = -O0 -g -traceback" \
 	"CXXFLAGS_DEBUG = -O0 -g -traceback" \

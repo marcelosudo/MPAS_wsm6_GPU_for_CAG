@@ -1,5 +1,5 @@
 .SUFFIXES: .F .o
-OPENACC=-acc -Minfo=accel -ta=tesla:cc70,pinned 
+OPENACCOPT=-acc -Minfo=accel -ta=tesla:cc70,pinned 
 all: dummy physics_wrf
 
 dummy:
@@ -110,7 +110,7 @@ clean:
 .F.o:
 ifeq "$(GEN_F90)" "true"
 	$(CPP) $(CPPFLAGS) $(COREDEF) $(CPPINCLUDES) $< > $*.f90
-	$(FC) -acc -Minfo=accel -ta=tesla:cc70,pinned $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
+	$(FC) $(OPENACCOPT) $(FFLAGS) -c $*.f90 $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
 else
-	$(FC) -acc -Minfo=accel -ta=tesla:cc70,pinned $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
+	$(FC) $(OPENACCOPT) $(CPPFLAGS) $(COREDEF) $(FFLAGS) -c $*.F $(CPPINCLUDES) $(FCINCLUDES) -I../../../framework -I../../../operators -I.. -I../../../external/esmf_time_f90
 endif
