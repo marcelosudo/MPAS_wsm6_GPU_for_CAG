@@ -5,7 +5,7 @@
 #SBATCH -J atmosphere_model       #Nome job
 #SBATCH --time=01:20:00          #Obrigatório
 
-executable=atmosphere_model_pio1
+executable=atmosphere_model
 
 rm log.atmosphere.*.out
 
@@ -30,7 +30,7 @@ export LD_LIBRARY_PATH=/scratch/mixprecmet/roberto.souto4/mpas/libs/ParallelIO-p
 spack load netcdf-fortran
 spack load parallel-netcdf
 
-resultdir=results/partition-${SLURM_JOB_PARTITION}/NUMNODES-$SLURM_JOB_NUM_NODES/MPI-${SLURM_NTASKS}/GPU-${dynranks}/JOBID-${SLURM_JOBID}
+resultdir=results/partition-${SLURM_JOB_PARTITION}/NUMNODES-$SLURM_JOB_NUM_NODES/MPI-${SLURM_NTASKS}/JOBID-${SLURM_JOBID}
 
 mkdir -p ${resultdir}
 
