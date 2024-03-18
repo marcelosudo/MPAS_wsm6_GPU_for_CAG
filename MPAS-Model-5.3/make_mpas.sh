@@ -33,9 +33,9 @@
 #    PRECISION=single - builds with default single-precision real kind. Default is to use double-precision.
 #    SHAREDLIB=true - generate position-independent code suitable for use in a shared library. Default is false.
 
-export PIO=$(spack location -i parallelio)
+export PIO=/scratch/mixprecmet/roberto.souto4/mpas/libs/ParallelIO-pio1_7_4/install
 export NETCDF=$(spack location -i netcdf-fortran)
 export PNETCDF=$(spack location -i parallel-netcdf)
 
 #make -j 8 [gfortran|ifort|pgi|xlf] CORE=atmosphere USE_PIO2=true PRECISION=single 2>&1 | tee make.output
-make -j 1 pgi CORE=atmosphere USE_PIO2=true PRECISION=single 2>&1 | tee make.output
+make -j 1 pgi CORE=atmosphere PRECISION=single 2>&1 | tee make.output
