@@ -5,7 +5,7 @@
 #SBATCH -J atmosphere_model       #Nome job
 #SBATCH --time=01:20:00          #Obrigatório
 
-executable=atmosphere_model
+executable=atmosphere_model_pio1
 
 rm log.atmosphere.*.out
 
@@ -25,7 +25,8 @@ export SPACK_USER_CONFIG_PATH=${workdir}/.spack/${version}
 NVHPC_DIR=$(spack location -i nvhpc@22.3)
 module load ${NVHPC_DIR}/modulefiles/nvhpc/22.3
 
-spack load parallelio
+#spack load parallelio
+export LD_LIBRARY_PATH=/scratch/mixprecmet/roberto.souto4/mpas/libs/ParallelIO-pio1_7_4/install:$LD_LIBRARY_PATH
 spack load netcdf-fortran
 spack load parallel-netcdf
 
