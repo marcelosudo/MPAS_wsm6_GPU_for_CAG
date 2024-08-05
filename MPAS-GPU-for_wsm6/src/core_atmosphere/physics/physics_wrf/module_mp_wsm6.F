@@ -124,6 +124,14 @@ CONTAINS
                                                               qr, &
                                                               qs, &
                                                               qg
+  REAL(2), DIMENSION( ims:ime , kms:kme , jms:jme ) ::             &
+                                                             ! hth,  &
+                                                              ! hq,  &
+                                                              hqc, &
+                                                              hqi, &
+                                                              hqr, &
+                                                              hqs, &
+                                                              hqg
   REAL, DIMENSION( ims:ime , kms:kme , jms:jme ),                 &
         INTENT(IN   ) ::                                          &
                                                              den, &
@@ -192,13 +200,27 @@ CONTAINS
   INTEGER                    :: start_clock, end_clock, rate
   REAL                       :: start_time, end_time, time
 
+  ! hth = th
+  ! hq = q
+  hqc = qc
+  hqi = qi
+  hqr = qr
+  hqs = qs
+  hqg = qg
+
   CALL SYSTEM_CLOCK(start_clock, rate)
 
-!$acc data pcopy(th, q, qc, qi, qr, qs, qg, rain, rainncv, &
+!$acc data pcopy(th, q, hqc, hqi, hqr, hqs, hqg, rain, rainncv, &
 !$acc            sr, re_cloud, re_ice, re_snow, refl_10cm, &
 !$acc            snow, snowncv, graupel, graupelncv)&
 !$acc    pcopyin(den, pii, p, delz) &
 !$acc    pcreate(t, qci, qrs)
+
+!!!$acc data pcopy(th, q, qc, qi, qr, qs, qg, rain, rainncv, &
+!!!$acc            sr, re_cloud, re_ice, re_snow, refl_10cm, &
+!!!$acc            snow, snowncv, graupel, graupelncv)&
+!!!$acc    pcopyin(den, pii, p, delz) &
+!!!$acc    pcreate(t, qci, qrs)
 
       DO j=jts,jte
 !$acc kernels
@@ -207,11 +229,11 @@ CONTAINS
 !$acc loop independent
          DO i=its,ite
             t(i,k)=th(i,k,j)*pii(i,k,j)
-            qci(i,k,1) = qc(i,k,j)
-            qci(i,k,2) = qi(i,k,j)
-            qrs(i,k,1) = qr(i,k,j)
-            qrs(i,k,2) = qs(i,k,j)
-            qrs(i,k,3) = qg(i,k,j)
+            qci(i,k,1) = hqc(i,k,j)
+            qci(i,k,2) = hqi(i,k,j)
+            qrs(i,k,1) = hqr(i,k,j)
+            qrs(i,k,2) = hqs(i,k,j)
+            qrs(i,k,3) = hqg(i,k,j)
          ENDDO
          ENDDO
 !$acc end kernels
@@ -240,11 +262,11 @@ CONTAINS
 !$acc loop independent
          DO I=its,ite
             th(i,k,j)=t(i,k)/pii(i,k,j)
-            qc(i,k,j) = qci(i,k,1)
-            qi(i,k,j) = qci(i,k,2)
-            qr(i,k,j) = qrs(i,k,1)
-            qs(i,k,j) = qrs(i,k,2)
-            qg(i,k,j) = qrs(i,k,3)
+            hqc(i,k,j) = qci(i,k,1)
+            hqi(i,k,j) = qci(i,k,2)
+            hqr(i,k,j) = qrs(i,k,1)
+            hqs(i,k,j) = qrs(i,k,2)
+            hqg(i,k,j) = qrs(i,k,3)
          ENDDO
          ENDDO
 !$acc end kernels
@@ -300,6 +322,15 @@ CONTAINS
 !$acc end data
       CALL SYSTEM_CLOCK(end_clock, rate)
       WRITE(*,*) "WSM6_GPU_TIME=",real(end_clock-start_clock)/real(rate)
+	  
+  ! th = hth
+  ! q = hq	
+  qc = hqc
+  qi = hqi
+  qr = hqr
+  qs = hqs
+  qg = hqg
+  
   END SUBROUTINE wsm6
 !===================================================================
 !
