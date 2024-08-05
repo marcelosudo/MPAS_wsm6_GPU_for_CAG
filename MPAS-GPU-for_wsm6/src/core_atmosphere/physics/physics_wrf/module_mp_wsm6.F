@@ -175,8 +175,8 @@ CONTAINS
                                                       graupelncv
 ! LOCAL VAR
   REAL, DIMENSION( its:ite , kts:kte ) ::   t
-  REAL, DIMENSION( its:ite , kts:kte, 2 ) ::   qci
-  REAL, DIMENSION( its:ite , kts:kte, 3 ) ::   qrs
+  REAL(2), DIMENSION( its:ite , kts:kte, 2 ) ::   qci !REAL(2)
+  REAL(2), DIMENSION( its:ite , kts:kte, 3 ) ::   qrs !REAL(2)
   INTEGER ::               i,j,k
 
 !+---+-----------------------------------------------------------------+
@@ -366,10 +366,10 @@ CONTAINS
   REAL, DIMENSION( its:ite , kts:kte ),                           &
         INTENT(INOUT) ::                                          &
                                                                t
-  REAL, DIMENSION( its:ite , kts:kte, 2 ),                        &
+  REAL(2), DIMENSION( its:ite , kts:kte, 2 ),                        & !REAL(2)
         INTENT(INOUT) ::                                          &
                                                              qci
-  REAL, DIMENSION( its:ite , kts:kte, 3 ),                        &
+  REAL(2), DIMENSION( its:ite , kts:kte, 3 ),                        & !REAL(2)
         INTENT(INOUT) ::                                          &
                                                              qrs
   REAL, DIMENSION( ims:ime , kms:kme ),                           &
