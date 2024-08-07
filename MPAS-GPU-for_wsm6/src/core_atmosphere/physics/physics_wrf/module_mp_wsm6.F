@@ -138,6 +138,11 @@ CONTAINS
                                                              pii, &
                                                                p, &
                                                             delz
+  REAL(2), DIMENSION( ims:ime , kms:kme , jms:jme ) ::            &
+                                                             hden, &
+                                                             hpii, &
+                                                               ! hp, &
+                                                            hdelz																 
   REAL, INTENT(IN   ) ::                                    delt, &
                                                                g, &
                                                               rd, &
@@ -160,6 +165,9 @@ CONTAINS
         INTENT(INOUT) ::                                    rain, &
                                                          rainncv, &
                                                               sr
+  REAL(2), DIMENSION( ims:ime , jms:jme ) ::                hrain, &
+                                                         hrainncv, &
+                                                              hsr
 ! for radiation connecting
   INTEGER, INTENT(IN)::                                           &
                                                         has_reqc, &
@@ -170,6 +178,10 @@ CONTAINS
                                                         re_cloud, &
                                                           re_ice, &
                                                          re_snow
+  REAL(2), DIMENSION(ims:ime, kms:kme, jms:jme)::                 &
+                                                        hre_cloud, &
+                                                          hre_ice, &
+                                                         hre_snow
 !+---+-----------------------------------------------------------------+
   REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT), OPTIONAL::     &  ! GT
                                                        refl_10cm
@@ -208,12 +220,23 @@ CONTAINS
   hqs = qs
   hqg = qg
 
+  hrain = rain
+  hrainncv = rainncv
+  hsr = sr			  
+  hre_cloud = re_cloud
+  hre_ice = re_ice
+  hre_snow = re_snow					  
+  hden = den
+  hpii = pii
+  ! hp = p
+  hdelz = delz
+
   CALL SYSTEM_CLOCK(start_clock, rate)
 
-!$acc data pcopy(th, q, hqc, hqi, hqr, hqs, hqg, rain, rainncv, &
-!$acc            sr, re_cloud, re_ice, re_snow, refl_10cm, &
+!$acc data pcopy(th, q, hqc, hqi, hqr, hqs, hqg, hrain, hrainncv, &
+!$acc            hsr, hre_cloud, hre_ice, hre_snow, refl_10cm, &
 !$acc            snow, snowncv, graupel, graupelncv)&
-!$acc    pcopyin(den, pii, p, delz) &
+!$acc    pcopyin(hden, hpii, p, hdelz) &
 !$acc    pcreate(t, qci, qrs)
 
 !!!$acc data pcopy(th, q, qc, qi, qr, qs, qg, rain, rainncv, &
@@ -228,7 +251,7 @@ CONTAINS
          DO k=kts,kte
 !$acc loop independent
          DO i=its,ite
-            t(i,k)=th(i,k,j)*pii(i,k,j)
+            t(i,k)=th(i,k,j)*hpii(i,k,j)
             qci(i,k,1) = hqc(i,k,j)
             qci(i,k,2) = hqi(i,k,j)
             qrs(i,k,1) = hqr(i,k,j)
@@ -240,15 +263,15 @@ CONTAINS
          !  Sending array starting locations of optional variables may cause
          !  troubles, so we explicitly change the call.
          CALL wsm62D(t, q(ims,kms,j), qci, qrs                     &
-                    ,den(ims,kms,j)                                &
-                    ,p(ims,kms,j), delz(ims,kms,j)                 &
+                    ,hden(ims,kms,j)                                &
+                    ,p(ims,kms,j), hdelz(ims,kms,j)                 &
                     ,delt,g, cpd, cpv, rd, rv, t0c                 &
                     ,ep1, ep2, qmin                                &
                     ,XLS, XLV0, XLF0, den0, denr                   &
                     ,cliq,cice,psat                                &
                     ,j                                             &
-                    ,rain(ims,j),rainncv(ims,j)                    &
-                    ,sr(ims,j)                                     &
+                    ,hrain(ims,j),hrainncv(ims,j)                    &
+                    ,hsr(ims,j)                                     &
                     ,ids,ide, jds,jde, kds,kde                     &
                     ,ims,ime, jms,jme, kms,kme                     &
                     ,its,ite, jts,jte, kts,kte                     &
@@ -261,7 +284,7 @@ CONTAINS
          DO K=kts,kte
 !$acc loop independent
          DO I=its,ite
-            th(i,k,j)=t(i,k)/pii(i,k,j)
+            th(i,k,j)=t(i,k)/hpii(i,k,j)
             hqc(i,k,j) = qci(i,k,1)
             hqi(i,k,j) = qci(i,k,2)
             hqr(i,k,j) = qrs(i,k,1)
@@ -276,7 +299,7 @@ CONTAINS
          if (diagflag .and. do_radar_ref == 1) then
             DO I=its,ite
                DO K=kts,kte
-                  t1d(k)=th(i,k,j)*pii(i,k,j)
+                  t1d(k)=th(i,k,j)*hpii(i,k,j)
                   p1d(k)=p(i,k,j)
                   qv1d(k)=q(i,k,j)
                   qr1d(k)=qr(i,k,j)
@@ -299,8 +322,8 @@ CONTAINS
               re_qi(k) = 10.01E-6
               re_qs(k) = 25.E-6
 
-              t1d(k)  = th(i,k,j)*pii(i,k,j)
-              den1d(k)= den(i,k,j)
+              t1d(k)  = th(i,k,j)*hpii(i,k,j)
+              den1d(k)= hden(i,k,j)
               qc1d(k) = qc(i,k,j)
               qi1d(k) = qi(i,k,j)
               qs1d(k) = qs(i,k,j)
@@ -309,9 +332,9 @@ CONTAINS
                                 qmin, t0c, re_qc, re_qi, re_qs,         &
                                 kts, kte, i, j)
             do k=kts,kte
-              re_cloud(i,k,j) = MAX(2.51E-6,  MIN(re_qc(k),  50.E-6))
-              re_ice(i,k,j)   = MAX(10.01E-6, MIN(re_qi(k), 125.E-6))
-              re_snow(i,k,j)  = MAX(25.E-6,   MIN(re_qs(k), 999.E-6))
+              hre_cloud(i,k,j) = MAX(2.51E-6,  MIN(re_qc(k),  50.E-6))
+              hre_ice(i,k,j)   = MAX(10.01E-6, MIN(re_qi(k), 125.E-6))
+              hre_snow(i,k,j)  = MAX(25.E-6,   MIN(re_qs(k), 999.E-6))
             enddo 
           enddo   
         endif     ! has_reqc, etc...
@@ -330,6 +353,16 @@ CONTAINS
   qr = hqr
   qs = hqs
   qg = hqg
+  rain = hrain
+  rainncv = hrainncv
+  sr = hsr			  
+  re_cloud = hre_cloud
+  re_ice = hre_ice
+  re_snow = hre_snow					  
+  den = hden
+  pii = hpii
+  ! p = hp
+  delz = hdelz				  
   
   END SUBROUTINE wsm6
 !===================================================================
@@ -406,11 +439,16 @@ CONTAINS
   REAL, DIMENSION( ims:ime , kms:kme ),                           &
         INTENT(INOUT) ::                                          &
                                                                q
-  REAL, DIMENSION( ims:ime , kms:kme ),                           &
+  REAL(2), DIMENSION( ims:ime , kms:kme ),                           & !REAL(2)
         INTENT(IN   ) ::                                          &
                                                              den, &
-                                                               p, &
+                                                               ! p, &
                                                             delz
+  REAL, DIMENSION( ims:ime , kms:kme ),                           &
+        INTENT(IN   ) ::                                          &
+                                                             ! den, &
+                                                               p !,&
+                                                            ! delz
   REAL, INTENT(IN   ) ::                                    delt, &
                                                                g, &
                                                              cpd, &
@@ -429,7 +467,7 @@ CONTAINS
                                                             cice, &
                                                             psat, &
                                                             denr
-  REAL, DIMENSION( ims:ime ),                                     &
+  REAL(2), DIMENSION( ims:ime ),                                     & !REAL(2)
         INTENT(INOUT) ::                                    rain, &
                                                          rainncv, &
                                                               sr
