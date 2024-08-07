@@ -125,8 +125,8 @@ CONTAINS
                                                               qs, &
                                                               qg
   REAL(2), DIMENSION( ims:ime , kms:kme , jms:jme ) ::             &
-                                                             ! hth,  &
-                                                              ! hq,  &
+                                                             hth,  &
+                                                              hq,  &
                                                               hqc, &
                                                               hqi, &
                                                               hqr, &
@@ -190,13 +190,17 @@ CONTAINS
   REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
         INTENT(INOUT) ::                                    snow, &
                                                          snowncv
+  REAL(2), DIMENSION( ims:ime , jms:jme ) ::               hsnow, &
+                                                         hsnowncv														 
   REAL, DIMENSION( ims:ime , jms:jme ), OPTIONAL,                 &
         INTENT(INOUT) ::                                 graupel, &
                                                       graupelncv
+  REAL(2), DIMENSION( ims:ime , jms:jme ) ::          hgraupel, & 
+                                                      hgraupelncv																  
 ! LOCAL VAR
-  REAL, DIMENSION( its:ite , kts:kte ) ::   t
-  REAL(2), DIMENSION( its:ite , kts:kte, 2 ) ::   qci !REAL(2)
-  REAL(2), DIMENSION( its:ite , kts:kte, 3 ) ::   qrs !REAL(2)
+  REAL(2), DIMENSION( its:ite , kts:kte ) ::   ht !REAL(2)
+  REAL(2), DIMENSION( its:ite , kts:kte, 2 ) ::   hqci !REAL(2)
+  REAL(2), DIMENSION( its:ite , kts:kte, 3 ) ::   hqrs !REAL(2)
   INTEGER ::               i,j,k
 
 !+---+-----------------------------------------------------------------+
@@ -212,8 +216,8 @@ CONTAINS
   INTEGER                    :: start_clock, end_clock, rate
   REAL                       :: start_time, end_time, time
 
-  ! hth = th
-  ! hq = q
+  hth = th
+  hq = q
   hqc = qc
   hqi = qi
   hqr = qr
@@ -226,6 +230,10 @@ CONTAINS
   hre_cloud = re_cloud
   hre_ice = re_ice
   hre_snow = re_snow					  
+  hsnow = snow
+  hsnowncv = snowncv
+  hgraupel = graupel
+  hgraupelncv = graupelncv						  
   hden = den
   hpii = pii
   ! hp = p
@@ -233,11 +241,11 @@ CONTAINS
 
   CALL SYSTEM_CLOCK(start_clock, rate)
 
-!$acc data pcopy(th, q, hqc, hqi, hqr, hqs, hqg, hrain, hrainncv, &
+!$acc data pcopy(hth, hq, hqc, hqi, hqr, hqs, hqg, hrain, hrainncv, &
 !$acc            hsr, hre_cloud, hre_ice, hre_snow, refl_10cm, &
-!$acc            snow, snowncv, graupel, graupelncv)&
+!$acc            hsnow, hsnowncv, hgraupel, hgraupelncv)&
 !$acc    pcopyin(hden, hpii, p, hdelz) &
-!$acc    pcreate(t, qci, qrs)
+!$acc    pcreate(ht, hqci, hqrs)
 
 !!!$acc data pcopy(th, q, qc, qi, qr, qs, qg, rain, rainncv, &
 !!!$acc            sr, re_cloud, re_ice, re_snow, refl_10cm, &
@@ -251,18 +259,18 @@ CONTAINS
          DO k=kts,kte
 !$acc loop independent
          DO i=its,ite
-            t(i,k)=th(i,k,j)*hpii(i,k,j)
-            qci(i,k,1) = hqc(i,k,j)
-            qci(i,k,2) = hqi(i,k,j)
-            qrs(i,k,1) = hqr(i,k,j)
-            qrs(i,k,2) = hqs(i,k,j)
-            qrs(i,k,3) = hqg(i,k,j)
+            ht(i,k)=hth(i,k,j)*hpii(i,k,j)
+            hqci(i,k,1) = hqc(i,k,j)
+            hqci(i,k,2) = hqi(i,k,j)
+            hqrs(i,k,1) = hqr(i,k,j)
+            hqrs(i,k,2) = hqs(i,k,j)
+            hqrs(i,k,3) = hqg(i,k,j)
          ENDDO
          ENDDO
 !$acc end kernels
          !  Sending array starting locations of optional variables may cause
          !  troubles, so we explicitly change the call.
-         CALL wsm62D(t, q(ims,kms,j), qci, qrs                     &
+         CALL wsm62D(ht, hq(ims,kms,j), hqci, hqrs                     &
                     ,hden(ims,kms,j)                                &
                     ,p(ims,kms,j), hdelz(ims,kms,j)                 &
                     ,delt,g, cpd, cpv, rd, rv, t0c                 &
@@ -275,8 +283,8 @@ CONTAINS
                     ,ids,ide, jds,jde, kds,kde                     &
                     ,ims,ime, jms,jme, kms,kme                     &
                     ,its,ite, jts,jte, kts,kte                     &
-                    ,snow,snowncv                                  &
-                    ,graupel,graupelncv                            &
+                    ,hsnow,hsnowncv                                  &
+                    ,hgraupel,hgraupelncv                            &
                                                                    )
 
 !$acc kernels
@@ -284,12 +292,12 @@ CONTAINS
          DO K=kts,kte
 !$acc loop independent
          DO I=its,ite
-            th(i,k,j)=t(i,k)/hpii(i,k,j)
-            hqc(i,k,j) = qci(i,k,1)
-            hqi(i,k,j) = qci(i,k,2)
-            hqr(i,k,j) = qrs(i,k,1)
-            hqs(i,k,j) = qrs(i,k,2)
-            hqg(i,k,j) = qrs(i,k,3)
+            hth(i,k,j)=ht(i,k)/hpii(i,k,j)
+            hqc(i,k,j) = hqci(i,k,1)
+            hqi(i,k,j) = hqci(i,k,2)
+            hqr(i,k,j) = hqrs(i,k,1)
+            hqs(i,k,j) = hqrs(i,k,2)
+            hqg(i,k,j) = hqrs(i,k,3)
          ENDDO
          ENDDO
 !$acc end kernels
@@ -299,7 +307,7 @@ CONTAINS
          if (diagflag .and. do_radar_ref == 1) then
             DO I=its,ite
                DO K=kts,kte
-                  t1d(k)=th(i,k,j)*hpii(i,k,j)
+                  t1d(k)=hth(i,k,j)*hpii(i,k,j)
                   p1d(k)=p(i,k,j)
                   qv1d(k)=q(i,k,j)
                   qr1d(k)=qr(i,k,j)
@@ -322,7 +330,7 @@ CONTAINS
               re_qi(k) = 10.01E-6
               re_qs(k) = 25.E-6
 
-              t1d(k)  = th(i,k,j)*hpii(i,k,j)
+              t1d(k)  = hth(i,k,j)*hpii(i,k,j)
               den1d(k)= hden(i,k,j)
               qc1d(k) = qc(i,k,j)
               qi1d(k) = qi(i,k,j)
@@ -346,8 +354,8 @@ CONTAINS
       CALL SYSTEM_CLOCK(end_clock, rate)
       WRITE(*,*) "WSM6_GPU_TIME=",real(end_clock-start_clock)/real(rate)
 	  
-  ! th = hth
-  ! q = hq	
+  th = hth
+  q = hq	
   qc = hqc
   qi = hqi
   qr = hqr
@@ -359,6 +367,10 @@ CONTAINS
   re_cloud = hre_cloud
   re_ice = hre_ice
   re_snow = hre_snow					  
+  snow = hsnow
+  snowncv = hsnowncv
+  graupel = hgraupel
+  graupelncv = hgraupelncv						  
   den = hden
   pii = hpii
   ! p = hp
@@ -427,7 +439,7 @@ CONTAINS
                                       ims,ime, jms,jme, kms,kme , &
                                       its,ite, jts,jte, kts,kte,  &
                                       lat
-  REAL, DIMENSION( its:ite , kts:kte ),                           &
+  REAL(2), DIMENSION( its:ite , kts:kte ),                           & !REAL(2)
         INTENT(INOUT) ::                                          &
                                                                t
   REAL(2), DIMENSION( its:ite , kts:kte, 2 ),                        & !REAL(2)
@@ -436,7 +448,7 @@ CONTAINS
   REAL(2), DIMENSION( its:ite , kts:kte, 3 ),                        & !REAL(2)
         INTENT(INOUT) ::                                          &
                                                              qrs
-  REAL, DIMENSION( ims:ime , kms:kme ),                           &
+  REAL(2), DIMENSION( ims:ime , kms:kme ),                           & !REAL(2)
         INTENT(INOUT) ::                                          &
                                                                q
   REAL(2), DIMENSION( ims:ime , kms:kme ),                           & !REAL(2)
@@ -471,10 +483,10 @@ CONTAINS
         INTENT(INOUT) ::                                    rain, &
                                                          rainncv, &
                                                               sr
-  REAL, DIMENSION( ims:ime, jms:jme ), OPTIONAL,                  &
+  REAL(2), DIMENSION( ims:ime, jms:jme ), OPTIONAL,                  &  !REAL(2)
         INTENT(INOUT) ::                                    snow, &
                                                          snowncv
-  REAL, DIMENSION( ims:ime, jms:jme ), OPTIONAL,                  &
+  REAL(2), DIMENSION( ims:ime, jms:jme ), OPTIONAL,                  & !REAL(2)
         INTENT(INOUT) ::                                 graupel, &
                                                       graupelncv
 ! LOCAL VAR
@@ -1869,7 +1881,11 @@ CONTAINS
                                                                            vt
   REAL, DIMENSION( its:ite , kts:kte) ::                                       &
                                                                           den, &
-                                                                       denfac, &
+                                                                       denfac !, &
+                                                                            ! t
+  REAL(2), DIMENSION( its:ite , kts:kte) ::                                       &
+                                                                          ! den, &
+                                                                       ! denfac, &
                                                                             t
   REAL, PARAMETER  :: t0c = 273.15
   REAL, DIMENSION( its:ite , kts:kte ) ::                                      &
@@ -2104,7 +2120,8 @@ CONTAINS
       integer  im,km,id
       real  dt
       real  dzl(im,km),wwl(im,km),rql(im,km),precip(im)
-      real  denl(im,km),denfacl(im,km),tkl(im,km)
+      real  denl(im,km),denfacl(im,km) !,tkl(im,km)
+	  real(2)  tkl(im,km)
 !
       integer  i,k,n,m,kk,kb,kt,iter
       real  tl,tl2,qql,dql,qqd
@@ -2484,7 +2501,8 @@ CONTAINS
       integer  im,km,id
       real  dt
       real  dzl(im,km),wwl(im,km),rql(im,km),rql2(im,km),precip(im),precip1(im),precip2(im)
-      real  denl(im,km),denfacl(im,km),tkl(im,km)
+      real  denl(im,km),denfacl(im,km)!,tkl(im,km)
+      real(2)  tkl(im,km)
 !
       integer  i,k,n,m,kk,kb,kt,iter,ist
       real  tl,tl2,qql,dql,qqd
