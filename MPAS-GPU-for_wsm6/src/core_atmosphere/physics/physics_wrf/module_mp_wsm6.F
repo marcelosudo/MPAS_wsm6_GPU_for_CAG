@@ -38,6 +38,8 @@
 #endif
 
 MODULE module_mp_wsm6
+   ! use cutensorex
+   use cudadevice
 !
 !  USE module_utility, ONLY: WRFU_Clock, WRFU_Alarm
 !  USE module_domain, ONLY : HISTORY_ALARM, Is_alarm_tstep
@@ -239,6 +241,7 @@ CONTAINS
   ! hp = p
   hdelz = delz
 
+  call test_time_and_date()
   CALL SYSTEM_CLOCK(start_clock, rate)
 
 !$acc data pcopy(hth, hq, hqc, hqi, hqr, hqs, hqg, hrain, hrainncv, &
@@ -353,6 +356,7 @@ CONTAINS
 !$acc end data
       CALL SYSTEM_CLOCK(end_clock, rate)
       WRITE(*,*) "WSM6_GPU_TIME=",real(end_clock-start_clock)/real(rate)
+	  call test_time_and_date()
 	  
   th = hth
   q = hq	
@@ -377,6 +381,21 @@ CONTAINS
   delz = hdelz				  
   
   END SUBROUTINE wsm6
+  
+  SUBROUTINE test_time_and_date()
+    character(8)  :: date
+    character(10) :: time
+    character(5)  :: zone
+    integer,dimension(8) :: values
+    ! using keyword arguments
+    call date_and_time(date,time,zone,values)
+    call date_and_time(DATE=date,ZONE=zone)
+    call date_and_time(TIME=time)
+    call date_and_time(VALUES=values)
+    print '(a,2x,a,2x,a)', date, time, zone
+    print '(8i5)', values
+end SUBROUTINE test_time_and_date
+
 !===================================================================
 !
   SUBROUTINE wsm62D(t, q                                          &   
@@ -490,7 +509,7 @@ CONTAINS
         INTENT(INOUT) ::                                 graupel, &
                                                       graupelncv
 ! LOCAL VAR
-  REAL, DIMENSION( its:ite , kts:kte , 3) ::                      &
+  REAL(2), DIMENSION( its:ite , kts:kte , 3) ::                      & !REAL(2)
                                                               rh, &
                                                               qs, &
                                                           rslope, &
@@ -902,7 +921,7 @@ CONTAINS
             xlf = xlf0
             work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
             if(qrs(i,k,2).gt.0.) then
-              coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
+              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2))*__half2float(rslopeb(i,k,2)))
               psmlt(i,k) = xka(t(i,k),den(i,k))/xlf*(t0c-t(i,k))*pi/2.       &
                          *n0sfac(i,k)*(precs1*rslope2(i,k,2)                 &
                          +precs2*work2(i,k)*coeres)/den(i,k)
@@ -917,7 +936,7 @@ CONTAINS
 !       (T>T0: G->R)
 !---------------------------------------------------------------
             if(qrs(i,k,3).gt.0.) then
-              coeres = rslope2(i,k,3)*sqrt(rslope(i,k,3)*rslopeb(i,k,3))
+              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3))*__half2float(rslopeb(i,k,3)))
               pgmlt(i,k) = xka(t(i,k),den(i,k))/xlf                          &
                          *(t0c-t(i,k))*(precg1*rslope2(i,k,3)                &
                          +precg2*work2(i,k)*coeres)/den(i,k)
@@ -1142,7 +1161,7 @@ CONTAINS
 !        (V->R or R->V)
 !---------------------------------------------------------------
           if(qrs(i,k,1).gt.0.) then
-            coeres = rslope2(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
+            coeres = rslope2(i,k,1)*sqrt(__half2float(rslope(i,k,1))*__half2float(rslopeb(i,k,1)))
             prevp(i,k) = (rh(i,k,1)-1.)*(precr1*rslope2(i,k,1)                 &
                          +precr2*work2(i,k)*coeres)/work1(i,k,1)
             if(prevp(i,k).lt.0.) then
@@ -1349,7 +1368,7 @@ CONTAINS
 !        (T<T0: V->S or S->V)
 !-------------------------------------------------------------
             if(qrs(i,k,2).gt.0..and.ifsat.ne.1) then
-              coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
+              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2))*__half2float(rslopeb(i,k,2)))
               psdep(i,k) = (rh(i,k,2)-1.)*n0sfac(i,k)*(precs1*rslope2(i,k,2)   &    
                            + precs2*work2(i,k)*coeres)/work1(i,k,2)
               supice = satdt-prevp(i,k)-pidep(i,k)
@@ -1367,7 +1386,7 @@ CONTAINS
 !        (T<T0: V->G or G->V)
 !-------------------------------------------------------------
             if(qrs(i,k,3).gt.0..and.ifsat.ne.1) then
-              coeres = rslope2(i,k,3)*sqrt(rslope(i,k,3)*rslopeb(i,k,3))
+              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3))*__half2float(rslopeb(i,k,3)))
               pgdep(i,k) = (rh(i,k,2)-1.)*(precg1*rslope2(i,k,3)               &
                               +precg2*work2(i,k)*coeres)/work1(i,k,2)
               supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k)
@@ -1417,7 +1436,7 @@ CONTAINS
 !
           if(supcol.lt.0.) then
             if(qrs(i,k,2).gt.0..and.rh(i,k,1).lt.1.) then
-              coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
+              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2))*__half2float(rslopeb(i,k,2)))
               psevp(i,k) = (rh(i,k,1)-1.)*n0sfac(i,k)*(precs1                  &
                            *rslope2(i,k,2)+precs2*work2(i,k)                   &
                            *coeres)/work1(i,k,1)
@@ -1428,7 +1447,7 @@ CONTAINS
 !       (T>=T0: G->V)
 !-------------------------------------------------------------
             if(qrs(i,k,3).gt.0..and.rh(i,k,1).lt.1.) then
-              coeres = rslope2(i,k,3)*sqrt(rslope(i,k,3)*rslopeb(i,k,3))
+              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3))*__half2float(rslopeb(i,k,3)))
               pgevp(i,k) = (rh(i,k,1)-1.)*(precg1*rslope2(i,k,3)               &
                          +precg2*work2(i,k)*coeres)/work1(i,k,1)
               pgevp(i,k) = min(max(pgevp(i,k),-qrs(i,k,3)/dtcld),0.)
@@ -1872,7 +1891,7 @@ CONTAINS
                             vt,its,ite,kts,kte)
   IMPLICIT NONE
   INTEGER       ::               its,ite, jts,jte, kts,kte
-  REAL, DIMENSION( its:ite , kts:kte,3) ::                                     &
+  REAL(2), DIMENSION( its:ite , kts:kte,3) ::                                     &
                                                                           qrs, &
                                                                        rslope, &
                                                                       rslopeb, &                                                 
