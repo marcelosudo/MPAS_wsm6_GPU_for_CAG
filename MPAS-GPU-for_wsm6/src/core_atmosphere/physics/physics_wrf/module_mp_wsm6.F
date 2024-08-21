@@ -520,17 +520,17 @@ end SUBROUTINE test_time_and_date
                                                             falk, &
                                                             fall, &
                                                            work1
-  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+  REAL(2), DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2)
                                                            fallc, &
                                                            falkc, &
                                                           work1c, &
                                                           work2c, &
                                                            workr, &
                                                            worka
-  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+  REAL(2), DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2)
                                                          den_tmp, &
                                                         delz_tmp
-  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+  REAL(2), DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2)
                                                            pigen, &
                                                            pidep, &
                                                            pcond, &
@@ -558,23 +558,47 @@ end SUBROUTINE test_time_and_date
                                                            pgmlt, &
                                                            pseml, &
                                                            pgeml
-  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
+  REAL, DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2) !TODO ANALISAR QUAL VARIAVEL ESTA DANDO ERRO
+                                                            ! qsum, &
+                                                              ! xl, &
+                                                             ! cpm, &
+                                                           ! work2, &
+                                                          ! denfac, &
+                                                             ! xni, &
+                                                         denqrs1, &
+                                                         denqrs2, &
+                                                         denqrs3, &
+                                                          denqci!, & 
+                                                          ! n0sfac
+  REAL, DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2) !TODO ANALISAR QUAL VARIAVEL ESTA DANDO ERRO
                                                             qsum, &
                                                               xl, &
                                                              cpm, &
                                                            work2, &
-                                                          denfac, &
+                                                          ! denfac, &
                                                              xni, &
-                                                         denqrs1, &
-                                                         denqrs2, &
-                                                         denqrs3, &
-                                                          denqci, & 
+                                                         ! denqrs1, &
+                                                         ! denqrs2, &
+                                                         ! denqrs3, &
+                                                          ! denqci, & 
                                                           n0sfac
-  REAL, DIMENSION( its:ite ) ::                          delqrs1, &
+  REAL(2), DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2) !TODO ANALISAR QUAL VARIAVEL ESTA DANDO ERRO
+                                                            ! qsum, &
+                                                              ! xl, &
+                                                             ! cpm, &
+                                                           ! work2, &
+                                                          denfac!, &
+                                                             ! xni, &
+                                                         ! denqrs1, &
+                                                         ! denqrs2, &
+                                                         ! denqrs3, &
+                                                          ! denqci, & 
+                                                          ! n0sfac
+  REAL, DIMENSION( its:ite ) ::                          delqrs1, & !REAL(2) !TODO tá dando pau tb
                                                          delqrs2, &
                                                          delqrs3, &
                                                            delqi  
-  REAL, DIMENSION( its:ite ) ::                        tstepsnow, &
+  REAL(2), DIMENSION( its:ite ) ::                        tstepsnow, & !REAL(2)
                                                       tstepgraup
   INTEGER, DIMENSION( its:ite ) ::                         mstep, &
                                                            numdt
@@ -597,7 +621,7 @@ end SUBROUTINE test_time_and_date
 ! Temporaries used for inlining fpvs function
   REAL  :: dldti, xb, xai, tr, xbi, xa, hvap, cvap, hsub, dldt, ttp
 ! variables for optimization
-  REAL, DIMENSION( its:ite ) ::                             tvec1
+  REAL(2), DIMENSION( its:ite ) ::                             tvec1 !REAL(2)
   REAL                       ::                              temp
   INTEGER :: time1, time2, clock_rate
 !=================================================================
@@ -921,7 +945,7 @@ end SUBROUTINE test_time_and_date
             xlf = xlf0
             work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
             if(qrs(i,k,2).gt.0.) then
-              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2))*__half2float(rslopeb(i,k,2)))
+              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2)*rslopeb(i,k,2)))
               psmlt(i,k) = xka(t(i,k),den(i,k))/xlf*(t0c-t(i,k))*pi/2.       &
                          *n0sfac(i,k)*(precs1*rslope2(i,k,2)                 &
                          +precs2*work2(i,k)*coeres)/den(i,k)
@@ -936,7 +960,7 @@ end SUBROUTINE test_time_and_date
 !       (T>T0: G->R)
 !---------------------------------------------------------------
             if(qrs(i,k,3).gt.0.) then
-              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3))*__half2float(rslopeb(i,k,3)))
+              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3)*rslopeb(i,k,3)))
               pgmlt(i,k) = xka(t(i,k),den(i,k))/xlf                          &
                          *(t0c-t(i,k))*(precg1*rslope2(i,k,3)                &
                          +precg2*work2(i,k)*coeres)/den(i,k)
@@ -1161,7 +1185,7 @@ end SUBROUTINE test_time_and_date
 !        (V->R or R->V)
 !---------------------------------------------------------------
           if(qrs(i,k,1).gt.0.) then
-            coeres = rslope2(i,k,1)*sqrt(__half2float(rslope(i,k,1))*__half2float(rslopeb(i,k,1)))
+            coeres = rslope2(i,k,1)*sqrt(__half2float(rslope(i,k,1)*rslopeb(i,k,1)))
             prevp(i,k) = (rh(i,k,1)-1.)*(precr1*rslope2(i,k,1)                 &
                          +precr2*work2(i,k)*coeres)/work1(i,k,1)
             if(prevp(i,k).lt.0.) then
@@ -1361,14 +1385,14 @@ end SUBROUTINE test_time_and_date
               else
                 pidep(i,k) = min(min(pidep(i,k),satdt/2),supice)
               endif
-              if(abs(prevp(i,k)+pidep(i,k)).ge.abs(satdt)) ifsat = 1
+              if(abs(__half2float(prevp(i,k)+pidep(i,k))).ge.abs(satdt)) ifsat = 1
             endif
 !-------------------------------------------------------------
 ! psdep: deposition/sublimation rate of snow [HDC 14]
 !        (T<T0: V->S or S->V)
 !-------------------------------------------------------------
             if(qrs(i,k,2).gt.0..and.ifsat.ne.1) then
-              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2))*__half2float(rslopeb(i,k,2)))
+              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2)*rslopeb(i,k,2)))
               psdep(i,k) = (rh(i,k,2)-1.)*n0sfac(i,k)*(precs1*rslope2(i,k,2)   &    
                            + precs2*work2(i,k)*coeres)/work1(i,k,2)
               supice = satdt-prevp(i,k)-pidep(i,k)
@@ -1378,7 +1402,7 @@ end SUBROUTINE test_time_and_date
               else
                 psdep(i,k) = min(min(psdep(i,k),satdt/2),supice)
               endif
-              if(abs(prevp(i,k)+pidep(i,k)+psdep(i,k)).ge.abs(satdt))          &
+              if(abs(__half2float(prevp(i,k)+pidep(i,k)+psdep(i,k))).ge.abs(satdt))          &
                 ifsat = 1
             endif
 !-------------------------------------------------------------
@@ -1386,7 +1410,7 @@ end SUBROUTINE test_time_and_date
 !        (T<T0: V->G or G->V)
 !-------------------------------------------------------------
             if(qrs(i,k,3).gt.0..and.ifsat.ne.1) then
-              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3))*__half2float(rslopeb(i,k,3)))
+              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3)*rslopeb(i,k,3)))
               pgdep(i,k) = (rh(i,k,2)-1.)*(precg1*rslope2(i,k,3)               &
                               +precg2*work2(i,k)*coeres)/work1(i,k,2)
               supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k)
@@ -1396,7 +1420,7 @@ end SUBROUTINE test_time_and_date
               else
                 pgdep(i,k) = min(min(pgdep(i,k),satdt/2),supice)
               endif
-              if(abs(prevp(i,k)+pidep(i,k)+psdep(i,k)+pgdep(i,k)).ge.          &
+              if(abs(__half2float(prevp(i,k)+pidep(i,k)+psdep(i,k)+pgdep(i,k))).ge.          &
                 abs(satdt)) ifsat = 1
             endif
 !-------------------------------------------------------------
@@ -1436,7 +1460,7 @@ end SUBROUTINE test_time_and_date
 !
           if(supcol.lt.0.) then
             if(qrs(i,k,2).gt.0..and.rh(i,k,1).lt.1.) then
-              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2))*__half2float(rslopeb(i,k,2)))
+              coeres = rslope2(i,k,2)*sqrt(__half2float(rslope(i,k,2)*rslopeb(i,k,2)))
               psevp(i,k) = (rh(i,k,1)-1.)*n0sfac(i,k)*(precs1                  &
                            *rslope2(i,k,2)+precs2*work2(i,k)                   &
                            *coeres)/work1(i,k,1)
@@ -1447,7 +1471,7 @@ end SUBROUTINE test_time_and_date
 !       (T>=T0: G->V)
 !-------------------------------------------------------------
             if(qrs(i,k,3).gt.0..and.rh(i,k,1).lt.1.) then
-              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3))*__half2float(rslopeb(i,k,3)))
+              coeres = rslope2(i,k,3)*sqrt(__half2float(rslope(i,k,3)*rslopeb(i,k,3)))
               pgevp(i,k) = (rh(i,k,1)-1.)*(precg1*rslope2(i,k,3)               &
                          +precg2*work2(i,k)*coeres)/work1(i,k,1)
               pgevp(i,k) = min(max(pgevp(i,k),-qrs(i,k,3)/dtcld),0.)
@@ -1898,16 +1922,16 @@ end SUBROUTINE test_time_and_date
                                                                       rslope2, &                                                 
                                                                       rslope3, &                                                 
                                                                            vt
-  REAL, DIMENSION( its:ite , kts:kte) ::                                       &
-                                                                          den, &
-                                                                       denfac !, &
+  ! REAL, DIMENSION( its:ite , kts:kte) ::                                       &
+                                                                          ! den, &
+                                                                       ! denfac !, &
                                                                             ! t
   REAL(2), DIMENSION( its:ite , kts:kte) ::                                       &
-                                                                          ! den, &
-                                                                       ! denfac, &
+                                                                          den, &
+                                                                       denfac, &
                                                                             t
   REAL, PARAMETER  :: t0c = 273.15
-  REAL, DIMENSION( its:ite , kts:kte ) ::                                      &
+  REAL(2), DIMENSION( its:ite , kts:kte ) ::                                      &
                                                                        n0sfac
   REAL       ::  lamdar, lamdas, lamdag, x, y, z, supcol
   integer :: i, j, k
@@ -2138,9 +2162,11 @@ end SUBROUTINE test_time_and_date
       implicit none
       integer  im,km,id
       real  dt
-      real  dzl(im,km),wwl(im,km),rql(im,km),precip(im)
-      real  denl(im,km),denfacl(im,km) !,tkl(im,km)
-	  real(2)  tkl(im,km)
+	  real  precip(im)
+	  real  rql(im,km)
+	  real(2)   dzl(im,km),wwl(im,km)
+	  real(2)  denfacl(im,km)
+	  real(2)  denl(im,km), tkl(im,km)
 !
       integer  i,k,n,m,kk,kb,kt,iter
       real  tl,tl2,qql,dql,qqd
@@ -2519,9 +2545,10 @@ end SUBROUTINE test_time_and_date
       implicit none
       integer  im,km,id
       real  dt
-      real  dzl(im,km),wwl(im,km),rql(im,km),rql2(im,km),precip(im),precip1(im),precip2(im)
-      real  denl(im,km),denfacl(im,km)!,tkl(im,km)
-      real(2)  tkl(im,km)
+      real  rql(im,km),rql2(im,km),precip(im),precip1(im),precip2(im) !dzl(im,km),wwl(im,km),
+	  real(2)  dzl(im,km),wwl(im,km)
+      real(2)  denfacl(im,km)
+	  real(2)  denl(im,km), tkl(im,km)
 !
       integer  i,k,n,m,kk,kb,kt,iter,ist
       real  tl,tl2,qql,dql,qqd
@@ -2931,6 +2958,7 @@ implicit none
     ite = int(Real_ite)
     if(Real_ite-ite>0) ite = ite + 1
     kte = n
+! temp (deu erro na execução), target_arr e result_arr (integer) - NÃO HÁ O QUE MEXER
 !$acc kernels pcopyin(target_arr) pcopyout(result_arr) &
 !$acc         pcreate(temp)
 !$acc loop gang vector
