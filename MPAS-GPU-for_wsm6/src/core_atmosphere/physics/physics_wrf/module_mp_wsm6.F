@@ -565,10 +565,10 @@ end SUBROUTINE test_time_and_date
                                                            ! work2, &
                                                           ! denfac, &
                                                              ! xni, &
-                                                         denqrs1, &
+                                                         ! denqrs1, &
                                                          denqrs2, &
-                                                         denqrs3, &
-                                                          denqci!, & 
+                                                         denqrs3!, &
+                                                          ! denqci!, & 
                                                           ! n0sfac
   REAL, DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2) !TODO ANALISAR QUAL VARIAVEL ESTA DANDO ERRO
                                                             qsum, &
@@ -587,17 +587,21 @@ end SUBROUTINE test_time_and_date
                                                               ! xl, &
                                                              ! cpm, &
                                                            ! work2, &
-                                                          denfac!, &
+                                                          denfac, &
                                                              ! xni, &
-                                                         ! denqrs1, &
+                                                         denqrs1, &
                                                          ! denqrs2, &
                                                          ! denqrs3, &
-                                                          ! denqci, & 
+                                                          denqci!, & 
                                                           ! n0sfac
-  REAL, DIMENSION( its:ite ) ::                          delqrs1, & !REAL(2) !TODO tá dando pau tb
+  REAL, DIMENSION( its:ite ) ::                          & !delqrs1, & !REAL(2) !TODO tá dando pau tb
                                                          delqrs2, &
-                                                         delqrs3, &
-                                                           delqi  
+                                                         delqrs3!, &
+                                                           ! delqi  
+  REAL(2), DIMENSION( its:ite ) ::                          delqrs1, & !REAL(2) !TODO tá dando pau tb
+                                                         ! delqrs2, &
+                                                         ! delqrs3, &
+                                                           delqi 
   REAL(2), DIMENSION( its:ite ) ::                        tstepsnow, & !REAL(2)
                                                       tstepgraup
   INTEGER, DIMENSION( its:ite ) ::                         mstep, &
@@ -1922,10 +1926,6 @@ end SUBROUTINE test_time_and_date
                                                                       rslope2, &                                                 
                                                                       rslope3, &                                                 
                                                                            vt
-  ! REAL, DIMENSION( its:ite , kts:kte) ::                                       &
-                                                                          ! den, &
-                                                                       ! denfac !, &
-                                                                            ! t
   REAL(2), DIMENSION( its:ite , kts:kte) ::                                       &
                                                                           den, &
                                                                        denfac, &
@@ -2162,11 +2162,8 @@ end SUBROUTINE test_time_and_date
       implicit none
       integer  im,km,id
       real  dt
-	  real  precip(im)
-	  real  rql(im,km)
-	  real(2)   dzl(im,km),wwl(im,km)
-	  real(2)  denfacl(im,km)
-	  real(2)  denl(im,km), tkl(im,km)
+	  real(2)  dzl(im,km),wwl(im,km),rql(im,km),precip(im)
+	  real(2)  denl(im,km), denfacl(im,km), tkl(im,km)
 !
       integer  i,k,n,m,kk,kb,kt,iter
       real  tl,tl2,qql,dql,qqd
@@ -2182,11 +2179,13 @@ end SUBROUTINE test_time_and_date
       integer t1, t2, clock_rate, clock_max
       integer ActiveCell(im), ActiveIndex(im), CellIndex(im), ActiveIm, AI
 !FOR PACKING
-      real,dimension(im,km) :: dz_pack, ww_pack, qq_pack, wd_pack, wa_pack, was_pack, &
-                               den_pack, denfac_pack
-      real,dimension(im,km+1):: wi_pack, zi_pack, za_pack
-      real,dimension(im,km)::qn_pack, qr_pack, tmp_pack, tmp1_pack, tmp2_pack, tmp3_pack
-      real,dimension(im,km+1) :: dza_pack, qa_pack, qmi_pack, qpi_pack
+      real,dimension(im,km) :: dz_pack, ww_pack
+      real(2),dimension(im,km) :: qq_pack, wd_pack, wa_pack, was_pack, &
+									den_pack, denfac_pack
+      real,dimension(im,km+1):: za_pack
+	  real(2),dimension(im,km+1)::  wi_pack, zi_pack
+      real(2),dimension(im,km)::qn_pack, qr_pack, tmp_pack, tmp1_pack, tmp2_pack, tmp3_pack
+      real(2),dimension(im,km+1) :: dza_pack, qa_pack, qmi_pack, qpi_pack
       lamdar(x,y)=   sqrt(sqrt(pidn0r/(x*y)))      ! (pidn0r/(x*y))**.25
 
 !
@@ -2549,6 +2548,8 @@ end SUBROUTINE test_time_and_date
 	  real(2)  dzl(im,km),wwl(im,km)
       real(2)  denfacl(im,km)
 	  real(2)  denl(im,km), tkl(im,km)
+      ! real  dzl(im,km),wwl(im,km),rql(im,km),rql2(im,km),precip(im),precip1(im),precip2(im)
+      ! real  denl(im,km),denfacl(im,km),tkl(im,km)
 !
       integer  i,k,n,m,kk,kb,kt,iter,ist
       real  tl,tl2,qql,dql,qqd
