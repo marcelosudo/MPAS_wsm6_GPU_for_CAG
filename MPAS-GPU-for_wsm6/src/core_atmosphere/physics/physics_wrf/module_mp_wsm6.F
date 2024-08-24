@@ -558,30 +558,21 @@ end SUBROUTINE test_time_and_date
                                                            pgmlt, &
                                                            pseml, &
                                                            pgeml
-  REAL, DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2) !TODO ANALISAR QUAL VARIAVEL ESTA DANDO ERRO
+  REAL, DIMENSION( its:ite , kts:kte ) ::                         &
                                                             qsum, &
-                                                              xl, &
-                                                             cpm, &
-                                                           work2, &
-                                                          ! denfac, &
-                                                             xni, &
-                                                         ! denqrs1, &
-                                                         ! denqrs2, &
-                                                         ! denqrs3, &
-                                                          ! denqci, & 
-                                                          n0sfac
-  REAL(2), DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2) !TODO ANALISAR QUAL VARIAVEL ESTA DANDO ERRO
+                                                              xl
+  REAL(2), DIMENSION( its:ite , kts:kte ) ::                         & !REAL(2)
                                                             ! qsum, &
                                                               ! xl, &
-                                                             ! cpm, &
-                                                           ! work2, &
+                                                             cpm, &
+                                                           work2, &
                                                           denfac, &
-                                                             ! xni, &
+                                                             xni, &
                                                          denqrs1, &
                                                          denqrs2, &
                                                          denqrs3, &
-                                                          denqci!, & 
-                                                          ! n0sfac
+                                                          denqci, & 
+                                                          n0sfac
   REAL(2), DIMENSION( its:ite ) ::                          delqrs1, & !REAL(2)
                                                          delqrs2, &
                                                          delqrs3, &
